@@ -1,0 +1,46 @@
+#!jinja2
+
+[meta]
+	title = "NLP NER Tweets from Soccer and fairplay"
+	description = """
+A NLP NER pipeline automated via cylc.
+
+It uses Python for Cylc, and also for the NLP library, Pattern.
+
+Downloads tweets with word Soccer, and also tweets with word FairPlay.
+
+Then calculates the Sentiment of each tweet, saving them to another CSV.
+
+Finally, a post-processing step removes negative comments, also sorting
+by the length of the tweet.
+"""
+
+[scheduling]
+	[[dependencies]]
+		graph = """
+		COLLECTORS
+		COLLECTORS:succeed-all 	=> sentiment
+		COLLECTORS:fail-any		=> goodbye
+		"""
+
+[runtime]
+	[[root]]
+        pre-script = "sleep 10"
+	[[COLLECTORS]]
+		script = "/home/kinow/Development/python/anaconda2/bin/python2 /home/kinow/cylc-run/my.suite/bin/tweets.py --term $TERM --out=${CYLC_SUITE_SHARE_PATH}/tweets-${CYLC_TASK_NAME}.csv"
+	[[collector_soccer]]
+		inherit = COLLECTORS
+		[[[environment]]]
+			TERM = "soccer"
+	[[collector_fairplay]]
+		inherit = COLLECTORS
+		[[[environment]]]
+			TERM = "fairplay"
+#	[[clear]]
+#		script = "clear data"
+	[[sentiment]]
+		script = "/home/kinow/Development/python/anaconda2/bin/python2 /home/kinow/cylc-run/my.suite/bin/nlp.py --file tweets.csv"
+#	[[bepositive]]
+#		script = "csv output"
+	[[goodbye]]
+		script = 'echo "BYE!"'
