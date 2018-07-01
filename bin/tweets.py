@@ -22,7 +22,7 @@ def main():
 	# Twitter engine
 	engine = Twitter(language='en')
 	with open(args.out, "w") as outfile:
-		writer = csv.writer(outfile, delimiter=',', quotechar='\"', quoting=csv.QUOTE_MINIMAL)
+		writer = csv.writer(outfile, delimiter=',', quotechar='\"', quoting=csv.QUOTE_ALL)
 		# download tweets
 		for tweet in engine.search(args.term, cached = False, start=1, count=30):
 			csvrow = [s.encode('utf-8') for s in tweet.values()]

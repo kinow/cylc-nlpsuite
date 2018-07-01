@@ -18,16 +18,15 @@ by the length of the tweet.
 [scheduling]
 	[[dependencies]]
 		graph = """
-		COLLECTORS
-		COLLECTORS:succeed-all 	=> sentiment
-		COLLECTORS:fail-any		=> goodbye
+			COLLECTORS:succeed-all => sentiment
+			sentiment => final
 		"""
 
 [runtime]
 	[[root]]
         pre-script = "sleep 10"
 	[[COLLECTORS]]
-		script = "/home/kinow/Development/python/anaconda2/bin/python2 /home/kinow/cylc-run/my.suite/bin/tweets.py --term $TERM --out=${CYLC_SUITE_SHARE_PATH}/tweets-${CYLC_TASK_NAME}.csv"
+		script = '/home/kinow/Development/python/anaconda2/bin/python2 /home/kinow/cylc-run/my.suite/bin/tweets.py --term $TERM --out="${CYLC_SUITE_SHARE_PATH}/tweets-${CYLC_TASK_NAME}.csv"'
 	[[collector_soccer]]
 		inherit = COLLECTORS
 		[[[environment]]]
@@ -36,11 +35,7 @@ by the length of the tweet.
 		inherit = COLLECTORS
 		[[[environment]]]
 			TERM = "fairplay"
-#	[[clear]]
-#		script = "clear data"
 	[[sentiment]]
-		script = "/home/kinow/Development/python/anaconda2/bin/python2 /home/kinow/cylc-run/my.suite/bin/nlp.py --file tweets.csv"
-#	[[bepositive]]
-#		script = "csv output"
-	[[goodbye]]
-		script = 'echo "BYE!"'
+		script = '/home/kinow/Development/python/anaconda2/bin/python2 /home/kinow/cylc-run/my.suite/bin/nlp.py --dir "${CYLC_SUITE_SHARE_PATH}" --out=${CYLC_SUITE_SHARE_PATH}/nlp.csv'
+	[[final]]
+		script = '/home/kinow/Development/python/anaconda2/bin/python2 /home/kinow/cylc-run/my.suite/bin/final.py --file "${CYLC_SUITE_SHARE_PATH}/nlp.csv" --out=${CYLC_SUITE_SHARE_PATH}/final.csv'
