@@ -25,9 +25,9 @@ def main():
 		writer = csv.writer(outfile, delimiter=',', quotechar='\"', quoting=csv.QUOTE_ALL)
 		# download tweets
 		for tweet in engine.search(args.term, cached = False, start=1, count=30):
-			csvrow = [s.encode('utf-8') for s in tweet.values()]
+			csvrow = tweet.text.encode('utf-8')
 			# write into CSV file
-			writer.writerow(csvrow)
+			writer.writerow([csvrow])
 
 if __name__ == '__main__':
 	main()

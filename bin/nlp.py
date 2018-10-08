@@ -28,7 +28,7 @@ def main():
 		with open(csv_file, "r") as infile:
 			reader = csv.reader(infile, delimiter=',', quotechar='\"', quoting=csv.QUOTE_ALL)
 			for row in reader:
-				tweet = row[4]
+				tweet = row[0]
 				tweet_sentiment = sentiment(tweet)
 				tweets_sentiment.append({'sentiment': tweet_sentiment[0], "text": tweet})
 

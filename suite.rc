@@ -1,5 +1,3 @@
-#!jinja2
-
 [meta]
 	title = "NLP NER Tweets from Soccer and fairplay"
 	description = """
@@ -15,27 +13,33 @@ Finally, a post-processing step removes negative comments, also sorting
 by the length of the tweet.
 """
 
+[cylc]
+	[[parameters]]
+		term = climate, weather, climatechange
+
 [scheduling]
+	initial cycle point = now
 	[[dependencies]]
-		graph = """
-			COLLECTORS:succeed-all => sentiment
-			sentiment => final
-		"""
+		[[[R1]]]
+			graph = """
+				pipinstall => SCRAPER
+			"""
+		[[[PT5M]]]
+			graph = """
+				SCRAPER:finish-all => scrapers_finished => sentiment => positive
+				scrapers_finished[-PT5M] => SCRAPER
+			"""
 
 [runtime]
-	[[root]]
-        pre-script = "sleep 10"
-	[[COLLECTORS]]
-		script = '/home/kinow/Development/python/anaconda2/bin/python2 /home/kinow/cylc-run/my.suite/bin/tweets.py --term $TERM --out="${CYLC_SUITE_SHARE_PATH}/tweets-${CYLC_TASK_NAME}.csv"'
-	[[collector_soccer]]
-		inherit = COLLECTORS
+	[[pipinstall]]
+		script = 'pip install --user pattern'
+	[[SCRAPER]]
+		script = 'tweets.py --term $TERM --out="${CYLC_SUITE_SHARE_PATH}/${CYLC_TASK_CYCLE_POINT}/tweets-${CYLC_TASK_NAME}.csv"'
+	[[collector_<term>]]
+		inherit = SCRAPER
 		[[[environment]]]
-			TERM = "soccer"
-	[[collector_fairplay]]
-		inherit = COLLECTORS
-		[[[environment]]]
-			TERM = "fairplay"
+			TERM = %(term)
 	[[sentiment]]
-		script = '/home/kinow/Development/python/anaconda2/bin/python2 /home/kinow/cylc-run/my.suite/bin/nlp.py --dir "${CYLC_SUITE_SHARE_PATH}" --out=${CYLC_SUITE_SHARE_PATH}/nlp.csv'
-	[[final]]
-		script = '/home/kinow/Development/python/anaconda2/bin/python2 /home/kinow/cylc-run/my.suite/bin/final.py --file "${CYLC_SUITE_SHARE_PATH}/nlp.csv" --out=${CYLC_SUITE_SHARE_PATH}/final.csv'
+		script = 'nlp.py --dir "${CYLC_SUITE_SHARE_PATH}/${CYLC_TASK_CYCLE_POINT}" --out=${CYLC_SUITE_SHARE_PATH}/nlp.csv'
+	[[positive]]
+		script = 'positive.py --file "${CYLC_SUITE_SHARE_PATH}/nlp.csv" --out=${CYLC_SUITE_SHARE_PATH}/final.csv'
