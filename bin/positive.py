@@ -14,6 +14,10 @@ import sys
 
 from pattern.en import sentiment
 
+import sqlite3
+
+db = sqlite3.connect('tweets')
+
 def main():
 	parser = argparse.ArgumentParser(description='Post-process to remove negative tweets')
 	parser.add_argument('--file', help='NLP CSV',required=True)

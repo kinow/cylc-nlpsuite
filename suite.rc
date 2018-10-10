@@ -15,19 +15,20 @@ by the length of the tweet.
 
 [cylc]
 	[[parameters]]
-		term = climate, weather, climatechange
+		term = climate, weather, climate_change
 
 [scheduling]
 	initial cycle point = now
+	max active cycle points = 3
 	[[dependencies]]
 		[[[R1]]]
 			graph = """
 				pipinstall => SCRAPER
 			"""
-		[[[PT5M]]]
+		[[[T--00]]]
 			graph = """
-				SCRAPER:finish-all => scrapers_finished => sentiment => positive
-				scrapers_finished[-PT5M] => SCRAPER
+				@wall_clock => SCRAPER:finish-all => scrapers_finished => sentiment => positive
+				scrapers_finished[-PT1M] => SCRAPER
 			"""
 
 [runtime]
@@ -38,8 +39,11 @@ by the length of the tweet.
 	[[collector_<term>]]
 		inherit = SCRAPER
 		[[[environment]]]
-			TERM = %(term)
+			TERM = $CYLC_TASK_PARAM_term
 	[[sentiment]]
-		script = 'nlp.py --dir "${CYLC_SUITE_SHARE_PATH}/${CYLC_TASK_CYCLE_POINT}" --out=${CYLC_SUITE_SHARE_PATH}/nlp.csv'
+		script = 'nlp.py --dir "${CYLC_SUITE_SHARE_PATH}/${CYLC_TASK_CYCLE_POINT}" --out=${CYLC_SUITE_SHARE_PATH}/${CYLC_TASK_CYCLE_POINT}/nlp.csv'
 	[[positive]]
-		script = 'positive.py --file "${CYLC_SUITE_SHARE_PATH}/nlp.csv" --out=${CYLC_SUITE_SHARE_PATH}/final.csv'
+		script = 'positive.py --file "${CYLC_SUITE_SHARE_PATH}/${CYLC_TASK_CYCLE_POINT}/nlp.csv" --out=${CYLC_SUITE_SHARE_PATH}/${CYLC_TASK_CYCLE_POINT}/final.csv'
+
+[visualization]
+	number of cycle points = 10
